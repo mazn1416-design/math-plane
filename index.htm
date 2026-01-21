@@ -19,7 +19,6 @@
 
         .plane-container { position: absolute; right: 10%; top: 35%; width: 150px; transition: all 1s ease-in-out; z-index: 50; }
         
-        /* تأثير الحريق المعدل */
         #fire-effect {
             position: absolute; top: 40%; right: -20px; width: 60px; height: 30px;
             background: radial-gradient(ellipse at left, #ff4500, #ff8c00, transparent);
@@ -43,8 +42,11 @@
         .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .opt-btn { padding: 12px; border-radius: 12px; border: 2px solid #cbd5e1; font-family: 'Cairo'; font-weight: 700; cursor: pointer; background: #fff; font-size: 16px; transition: 0.3s; }
         
-        .correct { background: #22c55e !important; color: white !important; }
-        .wrong { background: #ef4444 !important; color: white !important; }
+        /* حالة التعطيل */
+        .opt-btn:disabled { cursor: default; filter: brightness(0.9); }
+        
+        .correct { background: #22c55e !important; color: white !important; border-color: #16a34a !important; }
+        .wrong { background: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
         .hidden { display: none !important; }
         .vol-control { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; }
     </style>
@@ -68,7 +70,8 @@
             <div id="captain-msg"></div>
             <div class="plane-container" id="p-cont">
                 <div class="shake-layer" id="shake-node">
-                    <div id="fire-effect"></div> <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
+                    <div id="fire-effect"></div>
+                    <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
                 </div>
             </div>
         </div>
@@ -128,6 +131,7 @@
     function loadQ() {
         if (damage >= 3) return;
         if (qNum >= questions.length) { executeLanding(); return; }
+        locked = false; // فتح القفل للسؤال الجديد
         document.getElementById('q-idx').innerText = qNum + 1;
         let data = questions[qNum];
         document.getElementById('q-text').innerText = data.q;
@@ -159,14 +163,19 @@
     }
 
     function check(isRight, btn) {
-        if (locked) return;
-        locked = true;
+        if (locked) return; // منع الضغط المتكرر
+        locked = true; // إغلاق الإمكانية فوراً
         clearInterval(clock);
+        
+        // تعطيل جميع الأزرار في هذه اللحظة
+        const allBtns = document.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.disabled = true);
+
         if (isRight) {
             score++;
             if (btn) btn.classList.add('correct');
             document.getElementById('snd-correct').play();
-            setTimeout(() => { qNum++; loadQ(); locked = false; }, 800);
+            setTimeout(() => { qNum++; loadQ(); }, 800);
         } else {
             damage++;
             if (btn) btn.classList.add('wrong');
@@ -179,18 +188,19 @@
     function handleDmg() {
         if (damage === 1) showMsg("⚠️ تنبيه: خلل بسيط!", 2000, true);
         else if (damage === 2) {
-            document.getElementById('fire-effect').style.display = 'block'; // تفعيل الحريق
+            document.getElementById('fire-effect').style.display = 'block';
             showMsg("🔥 خطر: المحرك يشتعل!", 2000, true);
         }
         else if (damage === 3) executeCrash();
-        if(damage < 3) qNum++;
+        if(damage < 3) {
+            qNum++;
+        }
     }
 
     function executeLanding() {
-        locked = true; 
         const container = document.getElementById('p-cont');
         const landingAudio = document.getElementById('snd-landing');
-        document.getElementById('fire-effect').style.display = 'none'; // إطفاء الحريق عند الهبوط
+        document.getElementById('fire-effect').style.display = 'none';
         container.classList.add('safe-landing');
         landingAudio.play(); 
         showMsg("🏆 هبوط ناجح بسلام!", 6000, false);
@@ -198,7 +208,6 @@
     }
 
     function executeCrash() {
-        locked = true;
         const audio = document.getElementById('snd-crash-final');
         const container = document.getElementById('p-cont');
         audio.play();
@@ -209,11 +218,13 @@
     }
 
     function showMsg(text, time, next) {
-        locked = true;
         const msgBox = document.getElementById('captain-msg');
         msgBox.innerText = text;
         msgBox.style.display = 'block';
-        setTimeout(() => { msgBox.style.display = 'none'; locked = false; if(next) loadQ(); }, time);
+        setTimeout(() => { 
+            msgBox.style.display = 'none'; 
+            if(next) loadQ(); 
+        }, time);
     }
 
     function endMission(success) {
@@ -221,7 +232,7 @@
         document.getElementById('end-scr').classList.remove('hidden');
         const status = document.getElementById('final-status');
         status.innerText = success ? "🏆 هبوط آمن" : "❌ تحطمت الطائرة";
-        document.getElementById('score-res').innerText = "الدرجة: " + score;
+        document.getElementById('score-res').innerText = "الدرجة النهائيّة: " + score;
     }
 </script>
 </body>
