@@ -18,7 +18,6 @@
         @keyframes moveClouds { from { left: -150px; } to { left: 110%; } }
 
         .plane-container { position: absolute; right: 10%; top: 35%; width: 150px; transition: all 1s ease-in-out; z-index: 50; }
-        
         #fire-effect {
             position: absolute; top: 40%; right: -20px; width: 60px; height: 30px;
             background: radial-gradient(ellipse at left, #ff4500, #ff8c00, transparent);
@@ -27,10 +26,7 @@
         }
         @keyframes flicker { from { opacity: 0.8; transform: scale(1); } to { opacity: 1; transform: scale(1.2); } }
 
-        .shake-layer { animation: simpleShake 2s infinite ease-in-out; }
-        @keyframes simpleShake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
         #plane { width: 100%; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); }
-        
         .safe-landing { transform: translateY(160px) translateX(-380px) rotate(-3deg) scale(0.6) !important; transition: transform 6.5s ease-in-out !important; }
 
         #captain-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(220, 38, 38, 0.95); color: #fff; padding: 20px; border-radius: 15px; z-index: 1000; font-weight: 900; width: 85%; border: 3px dashed #fff; display: none; }
@@ -40,13 +36,13 @@
         
         .q-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; font-weight: 800; min-height: 70px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .opt-btn { padding: 12px; border-radius: 12px; border: 2px solid #cbd5e1; font-family: 'Cairo'; font-weight: 700; cursor: pointer; background: #fff; font-size: 16px; transition: 0.3s; }
+        .opt-btn { padding: 12px; border-radius: 12px; border: 2px solid #cbd5e1; font-family: 'Cairo'; font-weight: 700; cursor: pointer; background: #fff; font-size: 16px; transition: 0.2s; }
         
-        /* حالة التعطيل */
-        .opt-btn:disabled { cursor: default; filter: brightness(0.9); }
-        
-        .correct { background: #22c55e !important; color: white !important; border-color: #16a34a !important; }
+        /* تأثيرات القفل */
+        .opt-btn:disabled { cursor: default; opacity: 0.7; }
+        .correct { background: #22c55e !important; color: white !important; border-color: #16a34a !important; transform: scale(1.05); }
         .wrong { background: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
+        
         .hidden { display: none !important; }
         .vol-control { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; }
     </style>
@@ -69,10 +65,8 @@
             <div class="sun"></div><div class="cloud c1"></div>
             <div id="captain-msg"></div>
             <div class="plane-container" id="p-cont">
-                <div class="shake-layer" id="shake-node">
-                    <div id="fire-effect"></div>
-                    <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
-                </div>
+                <div id="fire-effect"></div>
+                <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
             </div>
         </div>
         <div class="header" style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
@@ -131,14 +125,17 @@
     function loadQ() {
         if (damage >= 3) return;
         if (qNum >= questions.length) { executeLanding(); return; }
-        locked = false; // فتح القفل للسؤال الجديد
+        
+        locked = false; 
         document.getElementById('q-idx').innerText = qNum + 1;
         let data = questions[qNum];
         document.getElementById('q-text').innerText = data.q;
         const box = document.getElementById('opt-box');
         box.innerHTML = "";
+        
         let options = data.o.map((opt, idx) => ({text: opt, isCorrect: idx === data.a}));
         options.sort(() => Math.random() - 0.5);
+        
         options.forEach((opt) => {
             let btn = document.createElement('button');
             btn.className = "opt-btn";
@@ -163,11 +160,11 @@
     }
 
     function check(isRight, btn) {
-        if (locked) return; // منع الضغط المتكرر
-        locked = true; // إغلاق الإمكانية فوراً
+        if (locked) return; 
+        locked = true; // قفل فوري
         clearInterval(clock);
         
-        // تعطيل جميع الأزرار في هذه اللحظة
+        // تعطيل كافة الأزرار فوراً
         const allBtns = document.querySelectorAll('.opt-btn');
         allBtns.forEach(b => b.disabled = true);
 
@@ -175,7 +172,7 @@
             score++;
             if (btn) btn.classList.add('correct');
             document.getElementById('snd-correct').play();
-            setTimeout(() => { qNum++; loadQ(); }, 800);
+            setTimeout(() => { qNum++; loadQ(); }, 1000);
         } else {
             damage++;
             if (btn) btn.classList.add('wrong');
@@ -189,12 +186,10 @@
         if (damage === 1) showMsg("⚠️ تنبيه: خلل بسيط!", 2000, true);
         else if (damage === 2) {
             document.getElementById('fire-effect').style.display = 'block';
-            showMsg("🔥 خطر: المحرك يشتعل!", 2000, true);
+            showMsg("🔥 خطر: المحرك يشتعل!", 2500, true);
         }
         else if (damage === 3) executeCrash();
-        if(damage < 3) {
-            qNum++;
-        }
+        if(damage < 3) qNum++;
     }
 
     function executeLanding() {
@@ -203,7 +198,7 @@
         document.getElementById('fire-effect').style.display = 'none';
         container.classList.add('safe-landing');
         landingAudio.play(); 
-        showMsg("🏆 هبوط ناجح بسلام!", 6000, false);
+        showMsg("🏆 كفو! هبطت بسلام", 6000, false);
         landingAudio.onended = () => endMission(true);
     }
 
@@ -213,7 +208,7 @@
         audio.play();
         container.style.transform = "translateY(500px) rotate(120deg)";
         container.style.transition = "4s";
-        showMsg("🆘 نداء استغاثة.. تحطم!", 4000, false);
+        showMsg("🆘 نداء استغاثة.. سقطنا!", 4000, false);
         audio.onended = () => endMission(false);
     }
 
@@ -231,8 +226,8 @@
         document.getElementById('game-scr').classList.add('hidden');
         document.getElementById('end-scr').classList.remove('hidden');
         const status = document.getElementById('final-status');
-        status.innerText = success ? "🏆 هبوط آمن" : "❌ تحطمت الطائرة";
-        document.getElementById('score-res').innerText = "الدرجة النهائيّة: " + score;
+        status.innerText = success ? "🏆 بطل! أنقذت الجميع" : "❌ تحطمت الطائرة";
+        document.getElementById('score-res').innerText = "الدرجة النهائية: " + score;
     }
 </script>
 </body>
