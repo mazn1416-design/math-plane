@@ -12,13 +12,22 @@
         .rights-text { color: #475569; font-size: 14px; font-weight: 700; margin: 0; }
         
         .sky { height: 250px; position: relative; overflow: hidden; border-radius: 20px; background: linear-gradient(#38bdf8, #87ceeb); border: 3px solid #0284c7; margin: 10px 0; }
-        .sun { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #ffd700, #ff8c00); border-radius: 50%; top: 20px; right: 20px; box-shadow: 0 0 20px #ffd700; }
+        .sun { position: absolute; width: 60px; height: 60px; background: radial-gradient(circle, #ffd700, #ff8c00); border-radius: 50%; top: 20px; right: 20px; }
         .cloud { position: absolute; background: #fff; border-radius: 50px; opacity: 0.8; animation: moveClouds 20s linear infinite; }
         .c1 { width: 80px; height: 30px; top: 40px; left: -100px; }
-        .c2 { width: 100px; height: 40px; top: 120px; left: -150px; animation-delay: 5s; }
         @keyframes moveClouds { from { left: -150px; } to { left: 110%; } }
 
         .plane-container { position: absolute; right: 10%; top: 35%; width: 150px; transition: all 1s ease-in-out; z-index: 50; }
+        
+        /* تأثير الحريق المعدل */
+        #fire-effect {
+            position: absolute; top: 40%; right: -20px; width: 60px; height: 30px;
+            background: radial-gradient(ellipse at left, #ff4500, #ff8c00, transparent);
+            border-radius: 50%; filter: blur(4px); display: none;
+            animation: flicker 0.1s infinite alternate; z-index: -1;
+        }
+        @keyframes flicker { from { opacity: 0.8; transform: scale(1); } to { opacity: 1; transform: scale(1.2); } }
+
         .shake-layer { animation: simpleShake 2s infinite ease-in-out; }
         @keyframes simpleShake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
         #plane { width: 100%; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); }
@@ -33,50 +42,33 @@
         .q-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; font-weight: 800; min-height: 70px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .opt-btn { padding: 12px; border-radius: 12px; border: 2px solid #cbd5e1; font-family: 'Cairo'; font-weight: 700; cursor: pointer; background: #fff; font-size: 16px; transition: 0.3s; }
-        .opt-btn:disabled { cursor: default; opacity: 0.8; }
         
-        .correct { background: #22c55e !important; color: white !important; border-color: #16a34a !important; }
-        .wrong { background: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
-        
+        .correct { background: #22c55e !important; color: white !important; }
+        .wrong { background: #ef4444 !important; color: white !important; }
         .hidden { display: none !important; }
-        
-        .vol-control { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; color: #475569; }
-        input[type=range] { cursor: pointer; }
+        .vol-control { margin: 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <div id="start-scr">
-        <div class="rights-box">
-            <p class="rights-text">جميع الحقوق محفوظة: ياسر مفرح العنزي 2026</p>
-        </div>
-        
+        <div class="rights-box"><p class="rights-text">جميع الحقوق محفوظة: ياسر مفرح العنزي 2026</p></div>
         <h1 style="color:#ef4444; margin:0; font-size: 35px; font-weight: 900;">أنقذ الطائرة</h1>
         <p style="margin:5px 0; color:#334155; font-weight:800; font-size: 20px;">باستخدام الأرقام</p>
-        
-        <img src="https://i.ibb.co/ccvY49sb/image.png" style="width: 150px; margin: 10px 0;">
-
-        <div class="vol-control">
-            <span>🔈</span>
-            <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" onchange="updateVol(this.value)">
-            <span>🔊</span>
-        </div>
-
+        <img src="https://i.ibb.co/ccvY49sb/image.png" style="width: 150px;">
+        <div class="vol-control">🔈 <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" onchange="updateVol(this.value)"> 🔊</div>
         <input id="pilot-name" type="text" placeholder="أدخل اسم المنقذ" style="width:80%; padding:12px; border-radius:10px; border:2px solid #ddd; text-align:center; font-family:'Cairo'; margin-bottom: 15px;">
-        <br>
-        <button onclick="startMission()" style="background:#ef4444; color:white; border:none; padding:15px 50px; border-radius:20px; font-size:20px; font-weight:900; cursor:pointer;">ابدأ المهمة 🚀</button>
+        <br><button onclick="startMission()" style="background:#ef4444; color:white; border:none; padding:15px 50px; border-radius:20px; font-size:20px; font-weight:900; cursor:pointer;">ابدأ المهمة 🚀</button>
     </div>
 
     <div id="game-scr" class="hidden">
         <div class="sky">
-            <div class="sun"></div>
-            <div class="cloud c1"></div>
-            <div class="cloud c2"></div>
+            <div class="sun"></div><div class="cloud c1"></div>
             <div id="captain-msg"></div>
             <div class="plane-container" id="p-cont">
                 <div class="shake-layer" id="shake-node">
-                    <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
+                    <div id="fire-effect"></div> <img id="plane" src="https://i.ibb.co/ccvY49sb/image.png">
                 </div>
             </div>
         </div>
@@ -106,11 +98,7 @@
     let score = 0, qNum = 0, clock, damage = 0, locked = false;
     let audios = ['snd-correct', 'snd-alert', 'snd-crash-final', 'snd-landing'];
 
-    function updateVol(val) {
-        audios.forEach(id => {
-            document.getElementById(id).volume = val;
-        });
-    }
+    function updateVol(val) { audios.forEach(id => { document.getElementById(id).volume = val; }); }
 
     let questionsData = [
         {q: "مجموع زوايا المثلث؟", o: ["180°", "90°", "360°", "270°"], a: 0},
@@ -189,8 +177,11 @@
     }
 
     function handleDmg() {
-        if (damage === 1) showMsg("⚠️ إنذار: خلل في التوازن!", 2000, true);
-        else if (damage === 2) showMsg("⚠️ عطل فني في المحرك الثاني!", 2000, true);
+        if (damage === 1) showMsg("⚠️ تنبيه: خلل بسيط!", 2000, true);
+        else if (damage === 2) {
+            document.getElementById('fire-effect').style.display = 'block'; // تفعيل الحريق
+            showMsg("🔥 خطر: المحرك يشتعل!", 2000, true);
+        }
         else if (damage === 3) executeCrash();
         if(damage < 3) qNum++;
     }
@@ -199,12 +190,11 @@
         locked = true; 
         const container = document.getElementById('p-cont');
         const landingAudio = document.getElementById('snd-landing');
-        document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+        document.getElementById('fire-effect').style.display = 'none'; // إطفاء الحريق عند الهبوط
         container.classList.add('safe-landing');
         landingAudio.play(); 
-        showMsg("🏆 كفو.. جاري الهبوط النهائي بسلام!", 6000, false);
+        showMsg("🏆 هبوط ناجح بسلام!", 6000, false);
         landingAudio.onended = () => endMission(true);
-        setTimeout(() => { if(!document.getElementById('game-scr').classList.contains('hidden')) endMission(true); }, 8500);
     }
 
     function executeCrash() {
@@ -214,7 +204,7 @@
         audio.play();
         container.style.transform = "translateY(500px) rotate(120deg)";
         container.style.transition = "4s";
-        showMsg("🆘 نداء استغاثة.. سقوط حر!", 4000, false);
+        showMsg("🆘 نداء استغاثة.. تحطم!", 4000, false);
         audio.onended = () => endMission(false);
     }
 
@@ -230,8 +220,7 @@
         document.getElementById('game-scr').classList.add('hidden');
         document.getElementById('end-scr').classList.remove('hidden');
         const status = document.getElementById('final-status');
-        status.innerText = success ? "🏆 كفو! تم هبوط الطائرة بسلام" : "❌ تحطمت الطائرة!";
-        status.style.color = success ? "green" : "red";
+        status.innerText = success ? "🏆 هبوط آمن" : "❌ تحطمت الطائرة";
         document.getElementById('score-res').innerText = "الدرجة: " + score;
     }
 </script>
